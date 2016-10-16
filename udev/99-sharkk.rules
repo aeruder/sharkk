@@ -1,0 +1,6 @@
+ACTION!="add|change", GOTO="sharkk_rules_end"
+SUBSYSTEM!="hidraw", GOTO="sharkk_rules_end"
+
+ATTRS{idVendor}=="04d9", ATTRS{idProduct}=="fc05", MODE="664", GROUP="plugdev"
+
+LABEL="sharkk_rules_end"
