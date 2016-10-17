@@ -1,0 +1,5 @@
+require 'sharkk/constants'
+require 'sharkk/libudev'
+require 'sharkk/color'
+require 'sharkk/mapping'
+require 'sharkk/mouse'
