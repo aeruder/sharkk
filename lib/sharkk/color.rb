@@ -19,25 +19,13 @@ module Sharkk
     # Return an array of byte values
     def to_bytes
       normalized_brightness = case brightness
-                              when 0
-                                0
-                              when 1
-                                1
-                              when 2
-                                2
-                              else
-                                3
+                              when 0; 0; when 1; 1
+                              when 2; 2; else; 3
                               end
       normalized_breath = case breath
-                           when 0
-                             0
-                           when 1
-                             6
-                           when 2
-                             3
-                           else
-                             1
-                           end
+                          when 0; 0; when 1; 6
+                          when 2; 3; else; 1
+                          end
 
       [ 255 - r, 255 - g, 255 - b,
         normalized_brightness, normalized_breath ]
