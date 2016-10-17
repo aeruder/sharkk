@@ -1,18 +1,6 @@
-module Sharkk
-  class Mapping
-    attr_accessor :data
-    def initialize(type: nil, value: nil)
-      unless type
-        type = :mouse
-        value = 1
-      end
-
-      case type
-      when :mouse
-        @data = [value, 0, 0, 0].pack("C*")
-      else
-        raise ArgumentError.new("Unknown type #{type}")
-      end
-    end
-  end
-end
+require_relative 'mapping/base'
+require_relative 'mapping/mouse'
+require_relative 'mapping/fire'
+require_relative 'mapping/key'
+require_relative 'mapping/constants'
+require_relative 'mapping/misc'
