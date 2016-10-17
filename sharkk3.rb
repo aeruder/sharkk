@@ -1,5 +1,23 @@
 require_relative 'libudev'
 
+class SharkkMouseButton
+  attr_accessor :data
+  def initialize(type: nil, value: nil)
+    unless type
+      type = :mouse
+      value = 1
+    end
+
+    case type
+    when :mouse
+      @data = [value, 0, 0, 0].pack("C*")
+    else
+      raise ArgumentError.new("Unknown type #{type}")
+    end
+  end
+end
+
+
 class SharkkMouse
   VENDOR_ID = 0x04d9
   PRODUCT_ID = 0xfc05
@@ -91,6 +109,29 @@ class SharkkMouse
     @io.ioctl(SFEATURE_IOCTL + (data.length << IOCTL_LEN_OFFSET), data)
   end
 
+  def raw_get_feature(report, length = nil)
+    unless length
+      length = case report
+               when 2
+                 16
+               when 3
+                 64
+               when 4
+                 1024
+               when 5
+                 2048
+               when 6
+                 4096
+               else
+                 nil
+               end
+    end
+    raise ArgumentError.new("length must be specified for report type #{report}") unless length
+    result = ([report].pack("C") + ("\x00" * (length - 1))).b
+    len = @io.ioctl(GFEATURE_IOCTL + (length << IOCTL_LEN_OFFSET), result)
+    result[0...len]
+  end
+
   # rgb = 0-255
   # brighness = 0 - 3
   # fade_sec = 0 (disabled), >0 = number of seconds it takes to fade out (goes up to 6 at least)
@@ -112,7 +153,8 @@ class SharkkMouse
     raw_set_feature(bytes.pack("C*"))
   end
   # save profile
-  def save_profile(profile)
+  def set_keys(profile, keys)
+    data = keys.inject("".b) { |m,v| m + v.data }
     bytes = [
       0x04, 0x02, 0x90, profile, 0x39, 0x00, 0xfa, 0xfa,
       0x0e, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00,
@@ -122,10 +164,22 @@ class SharkkMouse
       0x00, 0x10, 0x00, 0xe2, 0x00, 0x10, 0x00, 0xe0,
       0x00, 0x10, 0x00, 0xe1, 0x00, 0x05, 0x00, 0x00,
       0x00, 0x04, 0x00, 0x00, 0x00, 0x0d, 0x00, 0x00 ] + ([0x00] * 960)
-    raw_set_feature(bytes.pack("C*"))
+    bytes = bytes.pack("C*")
+    bytes[9,data.length] = data
+    raw_set_feature(bytes)
   end
 end
 
+srand
 SharkkMouse.open { |m|
-  m.set_color 255, 0, 0, 3, 1
+  m.set_profile 2
+  m.set_color rand(192)+64, rand(192)+64, rand(192)+64, 3, 1
+  m.set_keys 2, [
+    SharkkMouseButton.new(type: :mouse, value: 1),
+    SharkkMouseButton.new(type: :mouse, value: 3),
+    SharkkMouseButton.new(type: :mouse, value: 2),
+    SharkkMouseButton.new(type: :mouse, value: 6),
+    SharkkMouseButton.new(type: :mouse, value: 7)
+  ]
+
 }
