@@ -1,0 +1,32 @@
+#!/usr/bin/env ruby
+$:.unshift File.expand_path('../lib', __FILE__)
+require 'sharkk'
+
+profiles = (0..4).map do |x|
+  p = Sharkk::Profile.new
+  p.color = case x
+            when 0; Sharkk::Color.new(0xff, 0xff, 0x00)
+            when 1; Sharkk::Color.new(0x00, 0xff, 0x00)
+            when 2; Sharkk::Color.new(0x00, 0x00, 0xff)
+            when 3; Sharkk::Color.new(0xff, 0x00, 0xff)
+            else;   Sharkk::Color.new(0xff, 0x00, 0x00)
+            end
+  p.current_dpi = 1
+  p.buttons[3] = Sharkk::Mapping::SingleKey.new(Sharkk::Mapping::KeyboardPage::F13)
+  p.buttons[4] = Sharkk::Mapping::Forward.new
+  p.buttons[5] = Sharkk::Mapping::Backward.new
+  p.buttons[6] = Sharkk::Mapping::SingleKey.new(Sharkk::Mapping::KeyboardPage::VolumeUp)
+  p.buttons[7] = Sharkk::Mapping::SingleKey.new(Sharkk::Mapping::KeyboardPage::VolumeDown)
+  p.buttons[8] = Sharkk::Mapping::SingleKey.new(Sharkk::Mapping::KeyboardPage::F15)
+  p.buttons[9] = Sharkk::Mapping::SingleKey.new(Sharkk::Mapping::KeyboardPage::F16)
+  p.buttons[10] = Sharkk::Mapping::ProfileSwitch.new
+  p.buttons[11] = Sharkk::Mapping::SingleKey.new(Sharkk::Mapping::KeyboardPage::F14)
+  p.buttons[12] = Sharkk::Mapping::DpiCycle.new
+  p
+end
+
+Sharkk::Mouse.open { |m|
+  profiles.each.with_index { |p,pnum|
+    m.save_profile(pnum, p)
+  }
+}
