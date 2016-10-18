@@ -83,6 +83,7 @@ module Sharkk
     def raw_set_feature(data)
       @io.ioctl(SFEATURE_IOCTL + (data.length << IOCTL_LEN_OFFSET), data)
     end
+    private :raw_set_feature
 
     def raw_get_feature(report, length = nil)
       unless length
@@ -106,78 +107,144 @@ module Sharkk
       len = @io.ioctl(GFEATURE_IOCTL + (length << IOCTL_LEN_OFFSET), result)
       result[0...len]
     end
+    private :raw_get_feature
 
-    # rgb = 0-255
-    # brighness = 0 - 3
-    # fade_sec = 0 (disabled), >0 = number of seconds it takes to fade out (goes up to 6 at least), 0, 1, 3, 6 work for sure
-    def set_color(color)
-      bytes = [0x02, 0x04] +
-        color.to_bytes +
-        [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
-      raw_set_feature(bytes.pack("C*"))
-    end
-    def set_profile_color(profile, color)
-      bytes = [0x02, 0x02, 0xf1, profile, 0x06, 0x00, 0xfa, 0xfa] +
-        color.to_bytes +
-        [0x00, 0x00, 0x00]
-      raw_set_feature(bytes.pack("C*"))
-    end
-    # profile is 0 - 4
-    def set_profile(profile)
+    def write_unlock
       bytes = [
-        0x02, 0x02, 0x43, 0x00, 0x01, 0x00, 0xfa, 0xfa,
-        profile, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ]
-      raw_set_feature(bytes.pack("C*"))
-      bytes = [
-        0x02, 0x01, 0x01, profile, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ]
-      raw_set_feature(bytes.pack("C*"))
-    end
-    def save_profile(profile)
-      bytes = [
-        0x02, 0x02, 0xf1, profile, 0x06, 0x00, 0xfa, 0xfa,
-        0x36, 0xf4, 0x00, 0x02, 0x03, 0x00, 0x00, 0x00
-      ]
-      raw_set_feature(bytes.pack("C*"))
-      bytes = [
-        0x03, 0x02, 0x4f, 0x03, 0x2a, 0x00, 0xfa, 0xfa,
-        0x05, profile, 0x01, 0x14, 0x00, 0x14, 0x00, 0x00,
-        0x00, 0x00, 0x01, 0x28, 0x00, 0x28, 0x00, 0x01,
-        0x00, 0x00, 0x01, 0x50, 0x00, 0x50, 0x00, 0x03,
-        0x00, 0x00, 0x01, 0xa4, 0x00, 0xa4, 0x00, 0x07,
-        0x00, 0x00, 0x01, 0x48, 0x01, 0x48, 0x01, 0x0f,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x02, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
       ]
       raw_set_feature(bytes.pack("C*"))
+    end
+    private :write_unlock
+
+    def profile_unlock
       bytes = [
-        0x02, 0x02, 0x4c, 0x00, 0x01, 0x00, 0xfa, 0xfa,
-        0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+        0x02, 0x03, 0x43, 0x00, 0x01, 0x00, 0xfa, 0xfa,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
       ]
       raw_set_feature(bytes.pack("C*"))
+    end
+    private :profile_unlock
+
+    def profile_prepare(profnum)
+      raise ArgumentError.new("bad profile number") unless (0..4) === profnum
+      bytes = [
+        0x02, 0x03, 0x4f, profnum, 0x2a, 0x00, 0xfa, 0xfa,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+      ]
+      raw_set_feature(bytes.pack("C*"))
+    end
+    private :profile_prepare
+
+    def profile_lock
       bytes = [
         0x02, 0x02, 0x43, 0x00, 0x01, 0x00, 0xfa, 0xfa,
-        profile, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ]
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+      ]
       raw_set_feature(bytes.pack("C*"))
+    end
+    private :profile_lock
+
+    def write_lock
       bytes = [
         0x02, 0x06, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
       ]
       raw_set_feature(bytes.pack("C*"))
     end
-    def reset
+    private :write_lock
+
+    def reset(profnum)
       bytes = [
-        0x02, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-      ]
+        0x02, 0x01, 0x01, profnum, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ]
       raw_set_feature(bytes.pack("C*"))
     end
-    # save profile
-    def set_keys(num, profile)
-      bytes = [0x04, 0x02, 0x90, num, 0x39, 0x00, 0xfa, 0xfa, 0x0e] +
-        profile.to_bytes +
-        [ 0x0d, 0x00, 0x00 ] +
+    private :reset
+
+    def set_profile_color(profnum, color)
+      raise ArgumentError.new("bad profile number") unless (0..4) === profnum
+      bytes = [0x02, 0x02, 0xf1, profnum, 0x06, 0x00, 0xfa, 0xfa] +
+        color.to_bytes +
+        [0x00, 0x00, 0x00]
+      raw_set_feature(bytes.pack("C*"))
+    end
+    private :set_profile_color
+
+    def set_profile_polling_rate(profnum, polling_rate)
+      raise ArgumentError.new("bad profile number") unless (0..4) === profnum
+      bytes = [0x02, 0x02, 0x48 + profnum, 0x00, 0x01, 0x00, 0xfa, 0xfa] +
+        polling_rate.to_bytes +
+        [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+      raw_set_feature(bytes.pack("C*"))
+    end
+    private :set_profile_polling_rate
+
+    def set_profile_dpis(profnum, selected_dpi, dpis)
+      raise ArgumentError.new("bad profile number") unless (0..4) === profnum
+      raise ArgumentError.new("bad number of dpis") unless 5 == dpis.length
+      raise ArgumentError.new("bad selected dpi") unless dpis[selected_dpi].enabled
+      bytes =
+        [0x03, 0x02, 0x4f, profnum, 0x2a, 0x00, 0xfa, 0xfa, 0x05, selected_dpi] +
+        dpis[0].to_bytes + [0x00, 0x00, 0x00] +
+        dpis[1].to_bytes + [0x01, 0x00, 0x00] +
+        dpis[2].to_bytes + [0x03, 0x00, 0x00] +
+        dpis[3].to_bytes + [0x07, 0x00, 0x00] +
+        dpis[4].to_bytes + [0x0f, 0x00, 0x00] +
+        [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+         0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+      raw_set_feature(bytes.pack("C*"))
+    end
+    private :set_profile_dpis
+
+    def set_profile_buttons(profnum, buttons)
+      raise ArgumentError.new("bad profile number") unless (0..4) === profnum
+      raise ArgumentError.new("bad number of buttons") unless 13 == buttons.length
+      bytes = [0x04, 0x02, 0x90, profnum, 0x39, 0x00, 0xfa, 0xfa, 0x0e] +
+        buttons[0].to_bytes + buttons[1].to_bytes +
+        buttons[2].to_bytes + buttons[3].to_bytes +
+        buttons[4].to_bytes + buttons[5].to_bytes +
+        buttons[6].to_bytes + buttons[7].to_bytes +
+        buttons[8].to_bytes + buttons[9].to_bytes +
+        buttons[10].to_bytes + buttons[11].to_bytes +
+        buttons[12].to_bytes + [ 0x0d, 0x00, 0x00 ] +
         ([0x00] * 960)
+      raw_set_feature(bytes.pack("C*"))
+    end
+    private :set_profile_buttons
+
+    def save_profile(profnum, profile)
+      raise ArgumentError.new("bad profile number") unless (0..4) === profnum
+
+      write_unlock
+      begin
+        profile_unlock
+        begin
+          profile_prepare
+          set_profile_buttons(profnum, profile.buttons)
+          set_profile_color(profnum, profile.color)
+          set_profile_dpis(profnum, profile.current_dpi, profile.dpis)
+          set_profile_polling_rate(profnum, profile.polling_rate)
+        ensure
+          profile_lock
+        end
+      ensure
+        write_lock
+        reset(profnum)
+      end
+    end
+
+    def switch_profile(profnum)
+      raise ArgumentError.new("bad profile number") unless (0..4) === profnum
+      profile_lock
+      reset(profnum)
+    end
+
+    def set_color(color)
+      bytes = [0x02, 0x04] +
+        color.to_bytes +
+        [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
       raw_set_feature(bytes.pack("C*"))
     end
   end

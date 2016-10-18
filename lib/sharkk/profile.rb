@@ -1,6 +1,11 @@
 module Sharkk
   class Profile
     attr_accessor :buttons
+    attr_accessor :polling_rate
+    attr_accessor :color
+    attr_accessor :dpis
+    attr_accessor :current_dpi
+
     def initialize
       @buttons = []
       @buttons << Mapping::Mouse.new(:left)
@@ -16,14 +21,16 @@ module Sharkk
       @buttons << Mapping::SingleKey.new(Mapping::KeyboardPage::LeftShift)
       @buttons << Mapping::Forward.new
       @buttons << Mapping::Backward.new
-    end
-    def to_data
-      to_bytes.pack("C*")
-    end
-    def to_bytes
-      (0..12).map { |i|
-        @buttons[i].to_bytes
-      }.flatten
+
+      @polling_rate = PollingRate.new(500)
+      @color = Color.new(0, 0, 255, 3, 3)
+      @dpis = []
+      @dpis << Dpi.new(1000)
+      @dpis << Dpi.new(2000)
+      @dpis << Dpi.new(4000)
+      @dpis << Dpi.new(8200)
+      @dpis << Dpi.new(16400)
+      @current_dpi = 1
     end
   end
 end
