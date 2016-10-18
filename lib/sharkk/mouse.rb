@@ -137,14 +137,15 @@ module Sharkk
     end
     private :profile_prepare
 
-    def profile_lock
+    def set_profile_num(profnum)
+      raise ArgumentError.new("bad profile number") unless (0..4) === profnum
       bytes = [
         0x02, 0x02, 0x43, 0x00, 0x01, 0x00, 0xfa, 0xfa,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+        profnum, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
       ]
       raw_set_feature(bytes.pack("C*"))
     end
-    private :profile_lock
+    private :set_profile_num
 
     def write_lock
       bytes = [
@@ -227,7 +228,7 @@ module Sharkk
           set_profile_dpis(profnum, profile.current_dpi, profile.dpis)
           set_profile_polling_rate(profnum, profile.polling_rate)
         ensure
-          profile_lock
+          set_profile_num(profnum)
         end
       ensure
         write_lock
@@ -237,7 +238,7 @@ module Sharkk
 
     def switch_profile(profnum)
       raise ArgumentError.new("bad profile number") unless (0..4) === profnum
-      profile_lock
+      set_profile_num(profnum)
       reset(profnum)
     end
 
