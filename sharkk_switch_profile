@@ -1,0 +1,36 @@
+#!/usr/bin/env ruby
+
+$:.unshift File.expand_path('../lib', __FILE__)
+require 'sharkk'
+require 'optparse'
+
+options = {}
+parser = OptionParser.new do |opts|
+  opts.banner = <<-EOS
+Usage: #{$0} <profile>
+
+This program will switch to the numbered profile (1-5)
+EOS
+
+  opts.on("-h", "--help", "Prints this help") do
+    $stderr.puts opts
+    exit 1
+  end
+end
+
+parser.parse!
+
+if ARGV.length != 1
+  $stderr.puts "<profile> must be specified"
+  parser.parse(["-h"])
+end
+
+options[:profile] = ARGV[0].to_i
+unless (1..5) === options[:profile]
+  $stderr.puts "<profile> must be 1-5"
+  parser.parse(["-h"])
+end
+
+Sharkk::Mouse.open { |m|
+  m.switch_profile(options[:profile]-1)
+}

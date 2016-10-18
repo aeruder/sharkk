@@ -1,0 +1,61 @@
+#!/usr/bin/env ruby
+$:.unshift File.expand_path('../lib', __FILE__)
+require 'sharkk'
+require 'optparse'
+
+options = {breath: 3, brightness: 3}
+parser = OptionParser.new do |opts|
+  opts.banner = <<-EOS
+Usage: #{$0} [options] <rgb>
+
+<rgb> should be specified as a hex value similar to html (i.e. ff0000 = red)
+EOS
+
+  opts.on("-fSPEED", "--breath=SPEED", "Set breath speed (0-3)") do |n|
+    options[:breath] = n.to_i
+  end
+
+  opts.on("-bBRIGHTNESS", "--brightness=BRIGHTNESS", "Set brightness (0-3)") do |n|
+    options[:brightness] = n.to_i
+  end
+
+  opts.on("-h", "--help", "Prints this help") do
+    $stderr.puts opts
+    exit 1
+  end
+end
+
+parser.parse!
+
+def die(parser, err)
+  $stderr.puts(err)
+  parser.parse(["-h"])
+  exit 1
+end
+
+die(parser, "<rgb> must be specified>") if ARGV.length != 1
+m = /([0-9a-fA-F]+)/.match(ARGV[0])
+if !m || (m[1].length != 3 && m[1].length != 6)
+  die(parser, "<rgb> bad format, should be hex string")
+end
+options[:rgb] = m[1]
+# Handle 3-char strings similar to html
+if options[:rgb].length == 3
+  options[:rgb] = options[:rgb][0] +
+                  options[:rgb][0] +
+                  options[:rgb][1] +
+                  options[:rgb][1] +
+                  options[:rgb][2] +
+                  options[:rgb][2]
+end
+r = options[:rgb][0..1].to_i(16)
+g = options[:rgb][2..3].to_i(16)
+b = options[:rgb][4..5].to_i(16)
+
+die(parser, "breath speed must be 0-3") unless (0..3) === options[:breath]
+die(parser, "brightness must be 0-3") unless (0..3) === options[:brightness]
+
+Sharkk::Mouse.open { |m|
+  c = Sharkk::Color.new(r, g, b, breath: options[:breath], brightness: options[:brightness])
+  m.set_color(c)
+}
