@@ -8,18 +8,31 @@ module Sharkk
 
     def initialize
       @buttons = []
+      # Left button
       @buttons << Mapping::Mouse.new(:left)
+      # Right button
       @buttons << Mapping::Mouse.new(:right)
+      # Middle button
       @buttons << Mapping::Mouse.new(:middle)
+      # Blue button on top-left
       @buttons << Mapping::Fire.new(:left, repeat: 3, ms: 1)
+      # Top right of DPI indicator
       @buttons << Mapping::RateUp.new
+      # Bottom right of DPI indicator
       @buttons << Mapping::RateDown.new
+      # Top left of DPI indicator
       @buttons << Mapping::DpiUp.new
+      # Bottom left of DPI indicator
       @buttons << Mapping::DpiDown.new
+      # Top-left of side buttons
       @buttons << Mapping::SingleKey.new(Mapping::KeyboardPage::LeftAlt)
+      # Top-center of side buttons
       @buttons << Mapping::SingleKey.new(Mapping::KeyboardPage::LeftCtrl)
+      # Top-right of side buttons
       @buttons << Mapping::SingleKey.new(Mapping::KeyboardPage::LeftShift)
+      # Bottom-left of side buttons
       @buttons << Mapping::Forward.new
+      # Bottom-right of side buttons
       @buttons << Mapping::Backward.new
 
       @polling_rate = PollingRate.new(500)
