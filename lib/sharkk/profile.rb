@@ -36,7 +36,7 @@ module Sharkk
       @buttons << Mapping::Backward.new
 
       @polling_rate = PollingRate.new(500)
-      @color = Color.new(0, 0, 255, 3, 3)
+      @color = Color.new(0, 0, 255, breath: 3, brightness: 3)
       @dpis = []
       @dpis << Dpi.new(1000)
       @dpis << Dpi.new(2000)
