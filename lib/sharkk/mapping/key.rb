@@ -1,7 +1,7 @@
 module Sharkk
   module Mapping
     # Generic wrapper for a keycode
-    class Keycode < Base
+    class Keycode
       attr_accessor :usage_id, :page
       def initialize(usage_id, page)
         @usage_id = usage_id
