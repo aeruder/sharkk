@@ -222,7 +222,7 @@ module Sharkk
       begin
         profile_unlock
         begin
-          profile_prepare
+          profile_prepare(profnum)
           set_profile_buttons(profnum, profile.buttons)
           set_profile_color(profnum, profile.color)
           set_profile_dpis(profnum, profile.current_dpi, profile.dpis)
