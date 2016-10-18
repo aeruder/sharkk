@@ -13,7 +13,7 @@ module Sharkk
       end
 
       def to_bytes
-        raise NotImplementedError.new("this function should be overwritten")
+        raise NotImplementedError.new("this function should be overwritten in #{self.class}")
       end
     end
   end
