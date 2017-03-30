@@ -1,0 +1,40 @@
+#!/usr/bin/env ruby
+$:.unshift File.expand_path('../lib', __FILE__)
+require 'sharkk'
+
+profiles = (0..4).map do |x|
+  p = Sharkk::Profile.new
+  p.color = case x
+            when 0; Sharkk::Color.new(0xff, 0xff, 0x00)
+            when 1; Sharkk::Color.new(0x00, 0xff, 0x00)
+            when 2; Sharkk::Color.new(0x00, 0x00, 0xff)
+            when 3; Sharkk::Color.new(0xff, 0x00, 0xff)
+            else;   Sharkk::Color.new(0xff, 0x00, 0x00)
+            end
+  p.current_dpi = 1
+  # Show desktop
+  p.buttons[3] = Sharkk::Mapping::ComboKey.new(:ctrl, Sharkk::Mapping::KeyboardPage::F11)
+  # Mission control (all windows)
+  p.buttons[4] = Sharkk::Mapping::ComboKey.new(:ctrl, Sharkk::Mapping::KeyboardPage::Up)
+  # Application windows
+  p.buttons[5] = Sharkk::Mapping::ComboKey.new(:ctrl, Sharkk::Mapping::KeyboardPage::Down)
+  # Next workspace
+  p.buttons[6] = Sharkk::Mapping::ComboKey.new(:ctrl, Sharkk::Mapping::KeyboardPage::Right)
+  # Previous workspace
+  p.buttons[7] = Sharkk::Mapping::ComboKey.new(:ctrl, Sharkk::Mapping::KeyboardPage::Left)
+  # Partial screenshot
+  p.buttons[8] = Sharkk::Mapping::ComboKey.new([:shift, :win], Sharkk::Mapping::KeyboardPage::KB4)
+  # Show dashboard
+  p.buttons[9] = Sharkk::Mapping::ComboKey.new(:alt, Sharkk::Mapping::KeyboardPage::F11)
+  p.buttons[10] = Sharkk::Mapping::ProfileSwitch.new
+  # Full screenshot
+  p.buttons[11] = Sharkk::Mapping::ComboKey.new([:shift, :win], Sharkk::Mapping::KeyboardPage::KB3)
+  p.buttons[12] = Sharkk::Mapping::DpiCycle.new
+  p
+end
+
+Sharkk::Mouse.open { |m|
+  profiles.each.with_index { |p,pnum|
+    m.save_profile(pnum, p)
+  }
+}
