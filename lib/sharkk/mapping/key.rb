@@ -45,7 +45,7 @@ module Sharkk
 
       def to_bytes
         norm_modifiers = modifiers
-        norm_modifiers = [norm_modifiers] unless norm_modifiers.responds_to? :each
+        norm_modifiers = [norm_modifiers] unless norm_modifiers.respond_to? :each
         flags = 0x00
         norm_modifiers.each do |m|
           flags |= case m
